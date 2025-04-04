@@ -27,7 +27,8 @@ class TaskController extends Controller
     public function store(StoreTaskRequest $request)
     {
         $this->taskRepository->create($request->validated());
-        return redirect()->route('tasks.index')->with('success', 'Feladat létrehozva');
+
+        return redirect()->route('tasks.index')->with('success', 'Task created successfully.');
     }
 
     public function edit(int $id)
