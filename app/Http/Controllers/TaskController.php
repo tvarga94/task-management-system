@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreTaskRequest;
+use App\Http\Requests\UpdateTaskRequest;
+use App\Models\Task;
 use App\Repositories\Interfaces\TaskRepositoryInterface;
 use Illuminate\Http\Request;
 
@@ -31,16 +33,16 @@ class TaskController extends Controller
         return redirect()->route('tasks.index')->with('success', 'Task created successfully.');
     }
 
-    public function edit(int $id)
+    public function edit(Task $task)
     {
-        $task = $this->taskRepository->find($id);
         return view('tasks.edit', compact('task'));
     }
 
-    public function update(StoreTaskRequest $request, int $id)
+    public function update(UpdateTaskRequest $request, Task $task)
     {
-        $this->taskRepository->update($id, $request->validated());
-        return redirect()->route('tasks.index')->with('success', 'Feladat frissítve');
+        $this->taskRepository->update($task->id, $request->validated());
+
+        return redirect()->route('tasks.index')->with('success', 'Task updated successfully.');
     }
 
     public function destroy(int $id)
