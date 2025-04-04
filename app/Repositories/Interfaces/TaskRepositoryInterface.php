@@ -9,4 +9,6 @@ interface TaskRepositoryInterface
     public function find($id);
     public function update($id, array $data);
     public function delete($id);
+    public function reschedule(int $id, string $newDate);
+    public function duplicate(int $id);
 }
