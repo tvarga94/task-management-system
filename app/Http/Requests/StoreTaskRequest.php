@@ -11,36 +11,22 @@ use Illuminate\Validation\Rule;
 
 class StoreTaskRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Prepare the data for validation.
-     */
     protected function prepareForValidation(): void
     {
         if ($this->has('assignees') && is_string($this->assignees)) {
             $this->merge([
                 'assignees' => array_filter(
-                    array_map(
-                        fn($a) => strtolower(trim($a)), // Normalize to lowercase
-                        explode(',', $this->assignees)
-                    )
+                    array_map(fn($a) => strtolower(trim($a)), explode(',', $this->assignees))
                 ),
             ]);
         }
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
@@ -52,24 +38,33 @@ class StoreTaskRequest extends FormRequest
                 'array',
                 'max:4',
                 function ($attribute, $value, $fail) {
-                    if (!is_array($value)) {
-                        return;
-                    }
+                    if (!is_array($value)) return;
 
                     $scheduledDay = $this->input('scheduled_day');
-                    if (!$scheduledDay) {
-                        return;
-                    }
+                    if (!$scheduledDay) return;
+
+                    $newLength = (int) $this->input('length', 0);
 
                     foreach ($value as $assignee) {
                         $totalMinutes = Task::whereJsonContains('assignees', $assignee)
                             ->where('scheduled_day', $scheduledDay)
                             ->sum('length');
 
-                        $newLength = (int) $this->input('length', 0);
-
                         if (($totalMinutes + $newLength) > 480) {
-                            $fail("The assignee '$assignee' would exceed 8 hours of work on $scheduledDay.");
+                            $available = max(0, 480 - $totalMinutes);
+
+                            if ($available > 0) {
+                                session()->flash('split_suggestion', [
+                                    'assignees' => $value,
+                                    'available_minutes' => $available,
+                                    'requested_minutes' => $newLength,
+                                    'scheduled_day' => $scheduledDay,
+                                ]);
+
+                                $fail("Only $available minutes can be assigned to '$assignee' on $scheduledDay.");
+                            } else {
+                                $fail("The assignee '$assignee' has no available time left on $scheduledDay.");
+                            }
                         }
                     }
                 },

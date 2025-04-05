@@ -2,6 +2,33 @@
     <div class="max-w-2xl mx-auto py-10">
         <h1 class="text-2xl font-bold mb-6">Add New Task</h1>
 
+        @if(session('split_suggestion'))
+            <div class="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-800 p-4 mb-6 rounded">
+                <p class="font-semibold">⚠️ Task Split Suggestion</p>
+                <p class="text-sm">
+                    You requested <strong>{{ session('split_suggestion.requested_minutes') }}</strong> minutes,
+                    but only <strong>{{ session('split_suggestion.available_minutes') }}</strong> minutes are available
+                    for <strong>{{ implode(', ', session('split_suggestion.assignees', [])) }}</strong>
+                    on <strong>{{ session('split_suggestion.scheduled_day') }}</strong>.
+                </p>
+                <form method="POST" action="{{ route('tasks.store') }}" class="mt-2">
+                    @csrf
+                    <input type="hidden" name="title" value="{{ old('title') }}">
+                    <input type="hidden" name="length" value="{{ session('split_suggestion.available_minutes') }}">
+                    <input type="hidden" name="scheduled_day" value="{{ session('split_suggestion.scheduled_day') }}">
+                    @foreach(session('split_suggestion.assignees', []) as $a)
+                        <input type="hidden" name="assignees[]" value="{{ $a }}">
+                    @endforeach
+                    <input type="hidden" name="priority" value="{{ old('priority') }}">
+                    <input type="hidden" name="done" value="{{ old('done') ? 1 : 0 }}">
+
+                    <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded text-sm">
+                        Assign only {{ session('split_suggestion.available_minutes') }} min
+                    </button>
+                </form>
+            </div>
+        @endif
+
 @if ($errors->any())
     <div class="bg-red-100 text-red-700 px-4 py-2 rounded mb-4">
         <ul class="list-disc pl-5">
