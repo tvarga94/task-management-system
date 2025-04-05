@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Models\Task;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -26,7 +27,10 @@ class StoreTaskRequest extends FormRequest
         if ($this->has('assignees') && is_string($this->assignees)) {
             $this->merge([
                 'assignees' => array_filter(
-                    array_map('trim', explode(',', $this->assignees))
+                    array_map(
+                        fn($a) => strtolower(trim($a)), // Normalize to lowercase
+                        explode(',', $this->assignees)
+                    )
                 ),
             ]);
         }
@@ -43,7 +47,33 @@ class StoreTaskRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'length' => ['nullable', 'integer', 'min:0'],
             'done' => ['nullable', 'boolean'],
-            'assignees' => ['nullable', 'array', 'max:4'],
+            'assignees' => [
+                'nullable',
+                'array',
+                'max:4',
+                function ($attribute, $value, $fail) {
+                    if (!is_array($value)) {
+                        return;
+                    }
+
+                    $scheduledDay = $this->input('scheduled_day');
+                    if (!$scheduledDay) {
+                        return;
+                    }
+
+                    foreach ($value as $assignee) {
+                        $totalMinutes = Task::whereJsonContains('assignees', $assignee)
+                            ->where('scheduled_day', $scheduledDay)
+                            ->sum('length');
+
+                        $newLength = (int) $this->input('length', 0);
+
+                        if (($totalMinutes + $newLength) > 480) {
+                            $fail("The assignee '$assignee' would exceed 8 hours of work on $scheduledDay.");
+                        }
+                    }
+                },
+            ],
             'assignees.*' => ['string'],
             'priority' => ['nullable', Rule::in(['low', 'normal', 'high'])],
             'scheduled_day' => [
