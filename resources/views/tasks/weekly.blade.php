@@ -1,7 +1,5 @@
 <x-app-layout>
     <div class="max-w-7xl mx-auto py-10 px-4">
-
-        <!-- Header + Navigation -->
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-semibold">Weekly Task View</h1>
 
@@ -33,10 +31,13 @@
                     </div>
 
                     @forelse($tasks as $task)
-                        <div class="bg-gray-100 p-2 rounded text-sm">
+                        <div class="bg-gray-100 p-2 rounded text-sm space-y-1">
                             <div class="font-medium">{{ $task->title }}</div>
                             <div class="text-xs text-gray-500">
                                 {{ ucfirst($task->priority) }} • {{ $task->length ?? 0 }} min
+                            </div>
+                            <div class="text-xs text-gray-600">
+                                {{ is_array($task->assignees) ? implode(', ', array_map('ucfirst', $task->assignees)) : '-' }}
                             </div>
                         </div>
                     @empty

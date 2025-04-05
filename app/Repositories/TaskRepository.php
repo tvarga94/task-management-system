@@ -39,6 +39,9 @@ class TaskRepository implements TaskRepositoryInterface
         return Task::destroy($id);
     }
 
+    /**
+     * @throws \Exception
+     */
     public function reschedule(int $id, string $newDate): Task
     {
         $task = Task::findOrFail($id);

@@ -98,7 +98,6 @@ class TaskController extends Controller
 
         $tasks = $this->taskRepository->getTasksBetween($startOfWeek, $endOfWeek);
 
-        // Group tasks by day
         $grouped = collect();
         foreach (range(0, 4) as $i) {
             $date = $startOfWeek->copy()->addDays($i)->format('Y-m-d');

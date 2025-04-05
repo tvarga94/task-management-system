@@ -42,7 +42,7 @@
                                 {{ $task->done ? 'Yes' : 'No' }}
                             </span>
                         </p>
-                        <p class="text-sm text-gray-600"><strong>Assignees:</strong> {{ is_array($task->assignees) ? implode(', ', $task->assignees) : '-' }}</p>
+                        <p class="text-sm text-gray-600"><strong>Assignees:</strong> {{ is_array($task->assignees) ? implode(', ', array_map('ucfirst', $task->assignees)) : '-' }}</p>
                         <p class="text-sm text-gray-600"><strong>Scheduled Day:</strong> {{ $task->scheduled_day->format('Y-m-d') }}</p>
                     </div>
 

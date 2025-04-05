@@ -55,10 +55,10 @@
     </div>
 
     <div class="pt-4">
-        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+        <button type="submit" class="bg-green-600 hover:bg-green-700 text-black px-4 py-2 rounded">
             Create Task
         </button>
-        <a href="{{ route('tasks.index') }}" class="ml-3 text-sm text-gray-500 hover:underline">← Back</a>
+        <a href="{{ route('tasks.index') }}" class="ml-3 text-sm text-black hover:underline">Cancel</a>
     </div>
 </form>
 </div>
