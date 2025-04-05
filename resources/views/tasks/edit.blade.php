@@ -61,7 +61,7 @@
 
             <div class="pt-4">
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
-                    💾 Update Task
+                    Update Task
                 </button>
                 <a href="{{ route('tasks.index') }}" class="ml-3 text-sm text-gray-500 hover:underline">← Back</a>
             </div>

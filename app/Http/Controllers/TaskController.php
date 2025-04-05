@@ -8,53 +8,64 @@ use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Models\Task;
 use App\Repositories\Interfaces\TaskRepositoryInterface;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
-    public function __construct(private TaskRepositoryInterface $taskRepository) {}
+    public function __construct(
+        private readonly TaskRepositoryInterface $taskRepository
+    ) {}
 
-    public function index()
+    public function index(): View
     {
         return view('tasks.index', [
-            'tasks' => $this->taskRepository->all()
+            'tasks' => $this->taskRepository->all(),
         ]);
     }
 
-    public function create()
+    public function create(): View
     {
         return view('tasks.create');
     }
 
-    public function store(StoreTaskRequest $request)
+    public function store(StoreTaskRequest $request): RedirectResponse
     {
         $this->taskRepository->create($request->validated());
 
-        return redirect()->route('tasks.index')->with('success', 'Task created successfully.');
+        return redirect()
+            ->route('tasks.index')
+            ->with('success', 'Task created successfully.');
     }
 
-    public function edit(Task $task)
+    public function edit(Task $task): View
     {
         return view('tasks.edit', compact('task'));
     }
 
-    public function update(UpdateTaskRequest $request, Task $task)
+    public function update(UpdateTaskRequest $request, Task $task): RedirectResponse
     {
         $this->taskRepository->update($task->id, $request->validated());
 
-        return redirect()->route('tasks.index')->with('success', 'Task updated successfully.');
+        return redirect()
+            ->route('tasks.index')
+            ->with('success', 'Task updated successfully.');
     }
 
-    public function destroy(int $id)
+    public function destroy(int $id): RedirectResponse
     {
         $this->taskRepository->delete($id);
-        return redirect()->route('tasks.index')->with('success', 'Feladat törölve');
+
+        return redirect()
+            ->route('tasks.index')
+            ->with('success', 'Task deleted successfully.');
     }
 
-    public function reschedule(Request $request, int $id)
+    public function reschedule(Request $request, int $id): RedirectResponse
     {
         $request->validate([
-            'scheduled_day' => ['required', 'date']
+            'scheduled_day' => ['required', 'date'],
         ]);
 
         try {
@@ -63,12 +74,17 @@ class TaskController extends Controller
             return back()->withErrors($e->getMessage());
         }
 
-        return redirect()->route('tasks.index')->with('success', 'Feladat átütemezve');
+        return redirect()
+            ->route('tasks.index')
+            ->with('success', 'Task successfully rescheduled.');
     }
 
-    public function duplicate(int $id)
+    public function duplicate(int $id): RedirectResponse
     {
         $this->taskRepository->duplicate($id);
-        return redirect()->route('tasks.index')->with('success', 'Feladat duplikálva');
+
+        return redirect()
+            ->route('tasks.index')
+            ->with('success', 'Task duplicated.');
     }
 }

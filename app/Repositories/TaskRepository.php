@@ -1,48 +1,51 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repositories;
 
 use App\Models\Task;
 use App\Repositories\Interfaces\TaskRepositoryInterface;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 
 class TaskRepository implements TaskRepositoryInterface
 {
-    public function all()
+    public function all(): Collection
     {
         return Task::all();
     }
 
-    public function create(array $data)
+    public function create(array $data): Task
     {
         return Task::create($data);
     }
 
-    public function find($id)
+    public function find(int $id): Task
     {
         return Task::findOrFail($id);
     }
 
-    public function update($id, array $data)
+    public function update(int $id, array $data): Task
     {
         $task = Task::findOrFail($id);
         $task->update($data);
+
         return $task;
     }
 
-    public function delete($id)
+    public function delete(int $id): bool|int
     {
         return Task::destroy($id);
     }
 
-    public function reschedule(int $id, string $newDate)
+    public function reschedule(int $id, string $newDate): Task
     {
         $task = Task::findOrFail($id);
 
-        // Ensure it's a weekday
         $dayOfWeek = Carbon::parse($newDate)->dayOfWeek;
         if ($dayOfWeek === 0 || $dayOfWeek === 6) {
-            throw new \Exception('Csak hétköznapokra lehet ütemezni.');
+            throw new \Exception('Only weekdays (Mon–Fri) are allowed.');
         }
 
         $task->scheduled_day = $newDate;
@@ -51,11 +54,11 @@ class TaskRepository implements TaskRepositoryInterface
         return $task;
     }
 
-    public function duplicate(int $id)
+    public function duplicate(int $id): Task
     {
         $original = Task::findOrFail($id);
-        $copy = $original->replicate(); // Clone all fields except ID, created_at, updated_at
-        $copy->title = $copy->title . ' (másolat)';
+        $copy = $original->replicate();
+        $copy->title = $copy->title . ' (copy)';
         $copy->done = false;
         $copy->save();
 
