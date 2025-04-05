@@ -60,16 +60,73 @@ class TaskRepository implements TaskRepositoryInterface
     public function duplicate(int $id): Task
     {
         $original = Task::findOrFail($id);
-        $copy = $original->replicate();
-        $copy->title = $copy->title . ' (copy)';
-        $copy->done = false;
-        $copy->save();
+        $assignees = $original->assignees ?? [];
+        $scheduledDay = Carbon::parse($original->scheduled_day);
+        $totalLength = $original->length ?? 0;
 
-        return $copy;
+        $available = 480;
+
+        foreach ($assignees as $assignee) {
+            $assigned = Task::whereJsonContains('assignees', $assignee)
+                ->whereDate('scheduled_day', $scheduledDay->format('Y-m-d'))
+                ->sum('length');
+
+            $remaining = max(0, 480 - $assigned);
+            $available = min($available, $remaining);
+        }
+
+        if ($available <= 0) {
+            $nextDay = $this->getNextWeekday(clone $scheduledDay);
+
+            $copy = $original->replicate();
+            $copy->title .= ' (' . $nextDay->format('Y-m-d') . ')';
+            $copy->scheduled_day = $nextDay->format('Y-m-d');
+            $copy->done = false;
+            $copy->save();
+
+            return $copy;
+        }
+
+        if ($available >= $totalLength) {
+            $copy = $original->replicate();
+            $copy->title .= ' (' . $scheduledDay->format('Y-m-d') . ')';
+            $copy->done = false;
+            $copy->save();
+
+            return $copy;
+        }
+
+        $part1 = $original->replicate();
+        $part1->title .= ' (' . $scheduledDay->format('Y-m-d') . ')';
+        $part1->length = $available;
+        $part1->done = false;
+        $part1->save();
+
+        $nextDay = $this->getNextWeekday(clone $scheduledDay);
+
+        $part2 = $original->replicate();
+        $part2->title .= ' (' . $nextDay->format('Y-m-d') . ')';
+        $part2->length = $totalLength - $available;
+        $part2->scheduled_day = $nextDay->format('Y-m-d');
+        $part2->done = false;
+        $part2->save();
+
+        return $part1;
     }
 
     public function getTasksBetween(Carbon $start, Carbon $end): Collection
     {
         return Task::whereBetween('scheduled_day', [$start->toDateString(), $end->toDateString()])->get();
+    }
+
+    private function getNextWeekday(Carbon $date): Carbon
+    {
+        $date->addDay();
+
+        while ($date->isWeekend()) {
+            $date->addDay();
+        }
+
+        return $date;
     }
 }
