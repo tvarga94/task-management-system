@@ -20,6 +20,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('tasks', TaskController::class)->except(['show']);
     Route::post('tasks/{task}/reschedule', [TaskController::class, 'reschedule'])->name('tasks.reschedule');
     Route::post('tasks/{task}/duplicate', [TaskController::class, 'duplicate'])->name('tasks.duplicate');
+    Route::get('/tasks/weekly', [TaskController::class, 'weekly'])->name('tasks.weekly');
 });
 
 require __DIR__.'/auth.php';

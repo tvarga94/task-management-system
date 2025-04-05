@@ -8,6 +8,7 @@ use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Models\Task;
 use App\Repositories\Interfaces\TaskRepositoryInterface;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -86,5 +87,28 @@ class TaskController extends Controller
         return redirect()
             ->route('tasks.index')
             ->with('success', 'Task duplicated.');
+    }
+
+    public function weekly(Request $request): View
+    {
+        $current = Carbon::parse($request->get('date', now()));
+
+        $startOfWeek = $current->copy()->startOfWeek(Carbon::MONDAY);
+        $endOfWeek = $startOfWeek->copy()->addDays(4); // Friday
+
+        $tasks = $this->taskRepository->getTasksBetween($startOfWeek, $endOfWeek);
+
+        // Group tasks by day
+        $grouped = collect();
+        foreach (range(0, 4) as $i) {
+            $date = $startOfWeek->copy()->addDays($i)->format('Y-m-d');
+            $grouped[$date] = $tasks->filter(fn ($task) => $task->scheduled_day->format('Y-m-d') === $date);
+        }
+
+        return view('tasks.weekly', [
+            'weekStart' => $startOfWeek,
+            'weekEnd' => $endOfWeek,
+            'groupedTasks' => $grouped,
+        ]);
     }
 }

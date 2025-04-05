@@ -5,10 +5,18 @@
             <!-- Header -->
             <div class="flex justify-between items-center border-b pb-4">
                 <h1 class="text-2xl sm:text-3xl font-semibold text-gray-800">Task Manager</h1>
-                <a href="{{ route('tasks.create') }}"
-                   class="inline-block bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded shadow-sm">
-                    ➕ New Task
-                </a>
+
+                <div class="flex gap-2">
+                    <a href="{{ route('tasks.weekly') }}"
+                       class="bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-medium px-4 py-2 rounded shadow-sm">
+                        Weekly View
+                    </a>
+
+                    <a href="{{ route('tasks.create') }}"
+                       class="bg-blue-600 hover:bg-blue-700 text-black text-sm font-medium px-4 py-2 rounded shadow-sm">
+                        Add New Task
+                    </a>
+                </div>
             </div>
 
             <!-- Flash Message -->

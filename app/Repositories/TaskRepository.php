@@ -64,4 +64,9 @@ class TaskRepository implements TaskRepositoryInterface
 
         return $copy;
     }
+
+    public function getTasksBetween(Carbon $start, Carbon $end): Collection
+    {
+        return Task::whereBetween('scheduled_day', [$start->toDateString(), $end->toDateString()])->get();
+    }
 }
